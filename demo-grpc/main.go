@@ -1,19 +1,68 @@
 package main
 
 import (
+	"context"
 	"demo-grpc/gapi"
 	"demo-grpc/pb"
 	"log"
 	"net"
+	"net/http"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var DB_SOURCE string
 
 func main() {
+	// 启动HTTP网关服务，支持普通http请求
+	go grpcGatewayServerRun()
+
+	// 启动gRPC服务
 	grpcServerRun()
+}
+
+func grpcGatewayServerRun() {
+	server, err := gapi.NewServer()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			// 使用小写驼峰字段名
+			UseProtoNames: false,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		},
+	})
+
+	grpcMux := runtime.NewServeMux(jsonOption)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err = pb.RegisterUserServiceHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		log.Fatal("注册服务处理失败")
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", "127.0.0.1:8089")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("启动 HTTP网关服务：%s", "127.0.0.1:8089")
+	err = http.Serve(listener, mux)
+	if err != nil {
+		log.Fatal("启动 HTTP 网关服务失败")
+	}
 }
 
 func grpcServerRun() {
@@ -31,7 +80,7 @@ func grpcServerRun() {
 		log.Fatal(err)
 	}
 
-	log.Printf("启动gRPC服务：%s", "127.0.0.1:8088")
+	log.Printf("启动 gRPC服务：%s", "127.0.0.1:8088")
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		log.Fatal("启动gRPC服务失败")

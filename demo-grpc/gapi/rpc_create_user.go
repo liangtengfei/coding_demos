@@ -4,6 +4,7 @@ import (
 	"context"
 	"demo-grpc/pb"
 	"fmt"
+	"log"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -22,6 +23,7 @@ func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb
 			CreatedAt:         timestamppb.New(time.Now()),
 		},
 	}
+
 	return rsp, nil
 }
 
@@ -29,7 +31,7 @@ func (s *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.L
 	if len(req.Password) == 0 || len(req.Username) == 0 {
 		return nil, fmt.Errorf("用户名或密码不能为空")
 	}
-
+	meta := s.extractMetadata(ctx)
 	rsp := &pb.LoginUserResponse{
 		User: &pb.UserMessage{
 			Username:          req.Username,
@@ -43,6 +45,6 @@ func (s *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.L
 		AccessTokenExpiresAt:  timestamppb.New(time.Now()),
 		RefreshTokenExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
 	}
-
+	log.Printf("客户端信息：%v", meta)
 	return rsp, nil
 }
