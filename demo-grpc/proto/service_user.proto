@@ -6,8 +6,21 @@ import "rpc_create_user.proto";
 import "rpc_login_user.proto";
 
 import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "demo-grpc/pb";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "A Demo of gRPC";
+    version: "1.0";
+    contact: {
+      name: "gRPC-Gateway project";
+      url: "https://github.com/grpc-ecosystem/grpc-gateway";
+      email: "none@example.com";
+    };
+  };
+};
 
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
@@ -15,12 +28,22 @@ service UserService {
             post: "/rest/create_user",
             body: "*"
         };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          desription: "用户创建接口";
+          summary: "用户创建";
+          tags: "user";
+        };
     }
 
     rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {
         option (google.api.http) = {
             post: "/rest/login_user",
             body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          desription: "用户登陆接口";
+          summary: "用户登录";
+          tags: "user";
         };
     }
 }

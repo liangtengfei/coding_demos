@@ -8,7 +8,10 @@ import (
 	"net"
 	"net/http"
 
+	_ "demo-grpc/doc/statik"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -52,6 +55,13 @@ func grpcGatewayServerRun() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
+
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal("创建statikFS失败", err)
+	}
+	// fs := http.FileServer(http.Dir("./doc/swagger"))
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(statikFS)))
 
 	listener, err := net.Listen("tcp", "127.0.0.1:8089")
 	if err != nil {
