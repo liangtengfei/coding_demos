@@ -4,14 +4,17 @@ import (
 	"context"
 	"demo-grpc/gapi"
 	"demo-grpc/pb"
-	"log"
 	"net"
 	"net/http"
+	"os"
+
+	"github.com/rs/zerolog/log"
 
 	_ "demo-grpc/doc/statik"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rakyll/statik/fs"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -20,6 +23,7 @@ import (
 var DB_SOURCE string
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	// 启动HTTP网关服务，支持普通http请求
 	go grpcGatewayServerRun()
 
@@ -30,7 +34,7 @@ func main() {
 func grpcGatewayServerRun() {
 	server, err := gapi.NewServer()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("启动gRPC网关错误")
 	}
 
 	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
@@ -50,7 +54,7 @@ func grpcGatewayServerRun() {
 
 	err = pb.RegisterUserServiceHandlerServer(ctx, grpcMux, server)
 	if err != nil {
-		log.Fatal("注册服务处理失败")
+		log.Fatal().Err(err).Msg("注册服务处理失败")
 	}
 
 	mux := http.NewServeMux()
@@ -58,42 +62,43 @@ func grpcGatewayServerRun() {
 
 	statikFS, err := fs.New()
 	if err != nil {
-		log.Fatal("创建statikFS失败", err)
+		log.Fatal().Err(err).Msg("创建statikFS失败")
 	}
 	// fs := http.FileServer(http.Dir("./doc/swagger"))
 	mux.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(statikFS)))
 
 	listener, err := net.Listen("tcp", "127.0.0.1:8089")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	log.Printf("启动 HTTP网关服务：%s", "127.0.0.1:8089")
-	err = http.Serve(listener, mux)
+	err = http.Serve(listener, gapi.HttpLogger(mux))
 	if err != nil {
-		log.Fatal("启动 HTTP 网关服务失败")
+		log.Fatal().Err(err).Msg("启动 HTTP 网关服务失败")
 	}
 }
 
 func grpcServerRun() {
 	server, err := gapi.NewServer()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger)
 	pb.RegisterUserServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:8088")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	log.Printf("启动 gRPC服务：%s", "127.0.0.1:8088")
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatal("启动gRPC服务失败")
+		log.Fatal().Err(err).Msg("启动gRPC服务失败")
 	}
 }
 
