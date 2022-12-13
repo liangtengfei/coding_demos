@@ -4,9 +4,10 @@ import (
 	"context"
 	"demo-grpc/gapi"
 	"demo-grpc/pb"
+	"flag"
+	"fmt"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/rs/zerolog/log"
 
@@ -14,7 +15,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rakyll/statik/fs"
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -23,12 +23,17 @@ import (
 var DB_SOURCE string
 
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	port := flag.Int("port", 0, "the server port")
+	flag.Parse()
+
+	address := fmt.Sprintf("0.0.0.0:%d", *port)
+
+	// log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	// 启动HTTP网关服务，支持普通http请求
-	go grpcGatewayServerRun()
+	// go grpcGatewayServerRun()
 
 	// 启动gRPC服务
-	grpcServerRun()
+	grpcServerRun(address)
 }
 
 func grpcGatewayServerRun() {
@@ -79,7 +84,7 @@ func grpcGatewayServerRun() {
 	}
 }
 
-func grpcServerRun() {
+func grpcServerRun(address string) {
 	server, err := gapi.NewServer()
 	if err != nil {
 		log.Fatal().Err(err)
@@ -90,12 +95,12 @@ func grpcServerRun() {
 	pb.RegisterUserServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
-	listener, err := net.Listen("tcp", "127.0.0.1:8088")
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatal().Err(err)
 	}
 
-	log.Printf("启动 gRPC服务：%s", "127.0.0.1:8088")
+	log.Printf("启动 gRPC服务：%s", address)
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		log.Fatal().Err(err).Msg("启动gRPC服务失败")

@@ -1,5 +1,14 @@
+serv1:
+	go run main.go -port 50051
+
+serv2:
+	go run main.go -port 50052
+
 serv:
 	go run main.go
+
+client:
+	go run client/client.go
 
 proto:
 	rm -f pb/*.go
@@ -21,4 +30,4 @@ tools:
     google.golang.org/protobuf/cmd/protoc-gen-go \
     google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
-.PHONY: serv proto evans tools
+.PHONY: serv proto evans tools serv1 serv2 client
