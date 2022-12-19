@@ -1,0 +1,68 @@
+##################################################################################################
+# service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: quickstart2
+  labels:
+    app: quickstart2
+    service: quickstart2
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: quickstart2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quickstart2-v1
+  labels:
+    app: quickstart2
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickstart2
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: quickstart2
+        version: v1
+    spec:
+      containers:
+      - name: quickstart2
+        image: quickstart2/homepage:v1
+        imagePullPolicy: IfNotPresent #Always
+        ports:
+        - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quickstart2-v2
+  labels:
+    app: quickstart2
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickstart2
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: quickstart2
+        version: v2
+    spec:
+      containers:
+      - name: quickstart2
+        image: quickstart2/homepage:v2
+        imagePullPolicy: IfNotPresent #Always
+        ports:
+        - containerPort: 8080

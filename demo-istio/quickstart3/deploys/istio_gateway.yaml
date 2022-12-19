@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: pcbook-svc
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - quickstart2-gateway
+  http:
+  - route:
+    - destination:
+        host: pcbook
+        port:
+          number: 8090
