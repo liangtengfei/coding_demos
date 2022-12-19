@@ -29,6 +29,7 @@ func GrpcLogger(
 	if err != nil {
 		logger = log.Error().Err(err)
 	}
+
 	logger.
 		Str("protocol", "grpc").
 		Str("method", info.FullMethod).
