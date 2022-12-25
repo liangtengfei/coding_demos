@@ -1,0 +1,74 @@
+syntax = "v1"
+
+info(
+	title: "bookstore示例"
+	desc: "bookstore 微服务示例"
+	author: "Xiaohuozhi"
+	email: "2916288723@qq.com"
+	version: "v1"
+)
+
+type (
+	addReq {
+		Book  string `form:"book"`
+		Price int64  `form:"price"`
+	}
+
+	addResp {
+		Ok bool `json:"ok"`
+	}
+)
+
+type (
+	checkReq {
+		Book string `form:"book"`
+	}
+
+	checkResp {
+		Found bool  `json:"found"`
+		Price int64 `json:"price"`
+	}
+)
+
+type (
+	borrowReq {
+		Book string `form:"book"`
+	}
+
+	borrowResp {
+		Ok       bool  `json:"ok"`
+		BorrowId int64 `json:"borrowId"`
+	}
+
+	Record {
+		Id        int64  `json:"id"`
+		Book      string `json:"book"`
+		CreatedAt string `json:"createdAt"`
+	}
+
+	historyResp {
+		List []Record `json:"list"`
+	}
+)
+
+@server (
+	prefix: book
+	jwt: JwtAuth
+)
+service bookstore-api {
+	@doc "书籍：增加"
+	@handler AddHandler
+	post /add (addReq) returns (addResp)
+
+	@doc "书籍：查询"
+	@handler CheckHandler
+	get /check (checkReq) returns (checkResp)
+
+	@doc "借阅"
+	@handler BorrowHandler
+	post /borrow (borrowReq) returns (borrowResp)
+
+	@doc "借阅：记录列表"
+	@handler BorrowHistory
+	get /borrow/list (borrowReq) returns (historyResp)
+}

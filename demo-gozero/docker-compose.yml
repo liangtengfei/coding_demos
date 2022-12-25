@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  nginx-gateway:
+    image: nginx:latest
+    container_name: nginx-gateway
+    restart: always
+    privileged: true
+    ports:
+      - "8888:8080"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d
+      - ./data/nginx/log:/var/log/nginx
+    networks:
+      - bookstore_net
+    depends_on:
+      - bookstore
+
+  bookstore:
+    image: lyumikael/gomodd:v1.0.0
+    container_name: bookstore
+    environment:
+      TZ: Asia/Shanghai
+      GOPROXY: https://goproxy.cn,direct
+    working_dir: /app
+    volumes:
+      - .:/app
+    privileged: true
+    restart: always
+    networks:
+      - bookstore_net
+
+networks:
+  bookstore_net:
+    driver: bridge

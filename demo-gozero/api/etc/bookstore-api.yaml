@@ -1,0 +1,28 @@
+Name: bookstore-api
+Host: 0.0.0.0
+Port: 8999
+Add:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: add.rpc
+Check:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: check.rpc
+Borrow:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: borrow.rpc
+#链路追踪
+Telemetry:
+  Name: bookstore-api
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+#Prometheus:
+#  Host: 127.0.0.1
+#  Port: 9091
+#  Path: /metrics

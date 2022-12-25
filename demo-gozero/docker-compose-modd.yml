@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  bookstore:
+    image: lyumikael/gomodd:v1.0.0
+    container_name: bookstore
+    environment:
+      TZ: Asia/Shanghai
+      GOPROXY: https://goproxy.cn,direct
+    working_dir: /app
+    volumes:
+      - .:/app
+    privileged: true
+    restart: always
+    networks:
+      - bookstore_net
+
+networks:
+  bookstore_net:
+    driver: bridge

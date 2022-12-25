@@ -1,0 +1,17 @@
+Name: check.rpc
+ListenOn: 0.0.0.0:8082
+Etcd:
+  Hosts:
+  - etcd:2379
+  Key: check.rpc
+DataSource: postgres://postgres:xiaohuozhi2022.@postgres:5432/coder?sslmode=disable
+# mysql链接地址，满足 $user:$password@tcp($ip:$port)/$db?$queries 格式即可
+Table: book
+Cache:
+  - Host: redis:6379
+    Pass: WGlhb2h1b3poaTIwMjIu
+Telemetry:
+  Name: check-rpc
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
